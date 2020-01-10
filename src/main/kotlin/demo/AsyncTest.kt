@@ -2,13 +2,9 @@ package demo
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.Semaphore
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.collections.ArrayList
 import kotlin.system.exitProcess
 
 val pool: Executor = Executors.newFixedThreadPool(4)
@@ -31,13 +27,12 @@ suspend fun asyncJavaCall() {
 }
 
 fun getValueWithLongDelay(value: Any): String {
-    //LongExecution().exec()
-    //Thread.sleep(1000)
+    //LongExecution().exec() // direct call
 
     runBlocking {
-        //delay(1000)
-        asyncJavaCall()
-        //realAsyncJavaCall()
+        //delay(1000) // suspend, but not blocking coroutine, different behave with java Thread.sleep()
+        //asyncJavaCall() // wrapped call
+        realAsyncJavaCall() // call with passing execution to thread pool
     }
     return "val $value"
 }
@@ -91,10 +86,8 @@ fun asyncAndAwaitArr() {
 
     runBlocking {
         for (i in 1..3) {
-            coroutineScope {
-                val value = async { getValueWithLongDelay(i) }
-                results.add(value)
-            }
+            val value = async { getValueWithLongDelay(i) }
+            results.add(value)
         }
     }
 
@@ -113,7 +106,7 @@ fun launchAndJoinArr() {
 
     var time = System.currentTimeMillis()
 
-    val results: MutableList<String> = ArrayList()
+    val results: MutableList<String> = CopyOnWriteArrayList()
     val jobs: MutableList<Job> = ArrayList()
 
     runBlocking {
@@ -135,7 +128,8 @@ fun launchAndJoinArr() {
 }
 
 fun main() {
-    /*
+    println("using direct call")
+
     println("async vars")
     asyncVars()
     print("\n\n")
@@ -147,7 +141,6 @@ fun main() {
     println("asyncAndAwaitArr")
     asyncAndAwaitArr()
     print("\n\n")
-     */
 
     println("launchAndJoinArr")
     launchAndJoinArr()
