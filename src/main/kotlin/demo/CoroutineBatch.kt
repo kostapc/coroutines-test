@@ -5,6 +5,16 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.system.measureTimeMillis
+
+fun main() {
+
+    val time = measureTimeMillis {
+        CoroutineBatch().doWork(1000)
+    }
+    println()
+    println("execution time: $time")
+}
 
 class CoroutineBatch {
 
